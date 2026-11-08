@@ -2,6 +2,8 @@ name: Build Creaky Client
 on:
   push:
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,7 +29,9 @@ jobs:
         run: |
           find build/libs -name '*.jar' ! -name '*-sources.jar' -exec cp {} pack/mods/ \;
           cd pack && zip -r ../../CreakyClient-pack.zip .
-      - uses: actions/upload-artifact@v4
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
         with:
-          name: CreakyClient-pack
-          path: CreakyClient-pack.zip
+          tag_name: v1.0.${{ github.run_number }}
+          name: Creaky Client v1.0.${{ github.run_number }}
+          files: CreakyClient-pack.zip
