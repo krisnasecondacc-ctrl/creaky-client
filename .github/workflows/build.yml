@@ -1,0 +1,33 @@
+name: Build Creaky Client
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip source
+        run: unzip -q CreakyClient-source.zip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Build mod
+        working-directory: creaky-client
+        run: gradle build --no-daemon
+      - name: Download performance mods
+        working-directory: creaky-client
+        run: bash scripts/get-mods.sh pack
+      - name: Assemble pack
+        working-directory: creaky-client
+        run: |
+          find build/libs -name '*.jar' ! -name '*-sources.jar' -exec cp {} pack/mods/ \;
+          cd pack && zip -r ../../CreakyClient-pack.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CreakyClient-pack
+          path: CreakyClient-pack.zip
